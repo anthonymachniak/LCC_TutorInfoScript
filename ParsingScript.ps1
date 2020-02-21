@@ -11,10 +11,7 @@ try
         $newFileName += ".csv"
     }
 
-    Write-Output $newFileName
-
     Add-Content -Path $newFileName -Value 'Type,Date,Day,Location,Contact,UserName,LastName,FirstName,Course,CRN,Major,GrantStatus,Name,WeekNumber'
-
 
     If($folderToCopyFrom.Substring($folderToCopyFrom.Length - 1) -ne "\")
     {
@@ -23,16 +20,17 @@ try
     
     $files = Get-ChildItem "$folderToCopyFrom*.xlsm"
 
-    Write-Output $folderToCopyFrom
-    Write-Output $files
-
     ForEach ($file in $files)
     {
+        #parse/split filename
+        #foreach weekNumber in weekNumbers
+        #if(weekNumber % 2 -eq 0)
+        #  look at fileSplit[3] where length is the last 1-2 characters (based on weekNumber.length)
+
         $excel = New-Object -ComObject Excel.Application
         $excel.visible = $false
         $excel.displayalerts = $false
 
-        Write-Output $file.FullName
         $employeeFile = $excel.Workbooks.Open($file.FullName, $false)
 
         ForEach ($sheet in $employeeFile.Worksheets)
@@ -52,51 +50,28 @@ try
 
                 $sheetIsDifferentNumberOfDigits = ($sheetName[0].Substring($sheetName[0].Length-2, 1) -eq "1") -AND ($lengthOfSubstring -eq 1)
 
-                Write-Output $sheetIsDifferentNumberOfDigits
-                Write-Output $weekNumber
-                Write-Output $weekType
-
                 if($weekType.ToString() -eq "CL" -AND $weekNumber.ToString() -eq $weekNumberToProcess.ToString() -AND !$sheetIsDifferentNumberOfDigits)
                 {
                     $numberOfRows = $sheet.UsedRange.rows.count 
 
-                    $colType = "A"
-                    $colDate = "B"
-                    $colDay = "C"
-                    $colLocation = "D"
-                    $colContact = "E"
-                    $colUserName = "F"
-                    $colLastName = "G"
-                    $colFirstName = "H"
-                    $colCourse = "I"
-                    $colCRN = "J"
-                    $colMajor = "K"
-                    $colGrantStatus = "L"
-
                     $tutorNameFile = Split-Path -Path $employeeFile.FullName -Leaf -Resolve
-                    Write-Output "tutorNameFile:" $tutorNameFile
-
                     $tutorNameArray = $tutorNameFile -split "_"
-                    Write-Output "tutorNameArray:" $tutorNameArray
-
                     $tutorName = "$($tutorNameArray[1]) $($tutorNameArray[2])"
-                    Write-Output "tutorName:" $tutorName
 
                     for ($i=2; $i -le $numberOfRows; $i++)
                     {
-                        $type = $sheet.Range("$colType$i").text
-                        $date = $sheet.Range("$colDate$i").text
-                        $day = $sheet.Range("$colDay$i").text
-                        $location = $sheet.Range("$colLocation$i").text
-                        $contact = $sheet.Range("$colContact$i").text
-                        $userName = $sheet.Range("$colUserName$i").text
-                        $lastName = $sheet.Range("$colLastName$i").text
-                        $firstName = $sheet.Range("$colFirstName$i").text
-                        $course = $sheet.Range("$colCourse$i").text
-                        $CRN = $sheet.Range("$colCRN$i").text
-                        $major = $sheet.Range("$colMajor$i").text
-                        $grantStatus = $sheet.Range("$colGrantStatus$i").text
-
+                        $type = $sheet.Range("A$i").text        #colType
+                        $date = $sheet.Range("B$i").text        #colDate
+                        $day = $sheet.Range("C$i").text         #colDay
+                        $location = $sheet.Range("D$i").text    #colLocation
+                        $contact = $sheet.Range("E$i").text     #colContact
+                        $userName = $sheet.Range("F$i").text    #colUserName
+                        $lastName = $sheet.Range("G$i").text    #colLastName
+                        $firstName = $sheet.Range("H$i").text   #colFirstName
+                        $course = $sheet.Range("I$i").text      #colCourse
+                        $CRN = $sheet.Range("J$i").text         #colCRN
+                        $major = $sheet.Range("K$i").text       #colMajor
+                        $grantStatus = $sheet.Range("L$i").text #colGrantStatus
 
                         if($contact -ne '.' -and
                         -not([string]::IsNullOrEmpty($type) `
@@ -112,7 +87,7 @@ try
                         -and [string]::IsNullOrEmpty($major) `
                         -and [string]::IsNullOrEmpty($grantStatus)))
                         {
-                            $newLine = "`"{0}`",`"{1}`",`"{2}`",`"{3}`",`"{4}`",`"{5}`",`"{6}`",`"{7}`",`"{8}`",`"{9}`",`"{10}`",`"{11}`",`"{12}`",`"{13}`"" -f $type, $date, $day, $location, $contact, $userName, $lastName, $firstName, $course, $CRN, $major, $grantStatus, $tutorName, $weekNumberToProcess
+                            $newLine = "`"$type`",`"$date`",`"$day`",`"$location`",`"$contact`",`"$userName`",`"$lastName`",`"$firstName`",`"$course`",`"$CRN`",`"$major`",`"$grantStatus`",`"$tutorName`",`"$weekNumberToProcess`""
                             $newLine | Add-Content -path $newFileName
                         }
                         else
