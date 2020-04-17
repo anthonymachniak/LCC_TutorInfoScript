@@ -11,7 +11,7 @@ try
         $newFileName += ".csv"
     }
 
-    Add-Content -Path $newFileName -Value 'Type,Date,Day,Location,Contact,UserName,LastName,FirstName,Course,CRN,Major,GrantStatus,Name,WeekNumber,Supervisor'
+    Add-Content -Path $newFileName -Value 'Type,Date,Day,Location,Contact,UserName,LastName,FirstName,Course,CRN,Major,GrantStatus,Name,WeekNumber,Supervisor,EmployeeClass'
 
     If($folderToCopyFrom.Substring($folderToCopyFrom.Length - 1) -ne "\")
     {
@@ -31,6 +31,8 @@ try
         $tutorNameArray = $fileName -split "_"
         $tutorName = "$($tutorNameArray[1]) $($tutorNameArray[2])"
 
+        Write-Host "Checking $fileName for $tutorName"
+
         $week1 = $tutorNameArray[3]
         $week1 = $week1 -replace $regexPattern,''
         $week2 = $tutorNameArray[4]
@@ -39,6 +41,7 @@ try
         {
             $employeeFile = $excel.Workbooks.Open($file.FullName, $false)
 
+            $employeeClass = ""
             $supervisor = ""
             ForEach ($sheet in $employeeFile.Worksheets)
             {
@@ -47,6 +50,7 @@ try
 
                 if($weekType.ToString() -eq "WL")
                 {
+                    $employeeClass = $sheet.Range("O3").text
                     $supervisor = $sheet.Range("O5").text
                     break;
                 }
@@ -96,7 +100,7 @@ try
                                 -and [string]::IsNullOrEmpty($major) `
                                 -and [string]::IsNullOrEmpty($grantStatus)))
                                 {
-                                    $newLine = "`"$type`",`"$date`",`"$day`",`"$location`",`"$contact`",`"$userName`",`"$lastName`",`"$firstName`",`"$course`",`"$CRN`",`"$major`",`"$grantStatus`",`"$tutorName`",`"$weekNumberToProcess`",`"$supervisor`""
+                                    $newLine = "`"$type`",`"$date`",`"$day`",`"$location`",`"$contact`",`"$userName`",`"$lastName`",`"$firstName`",`"$course`",`"$CRN`",`"$major`",`"$grantStatus`",`"$tutorName`",`"$weekNumberToProcess`",`"$supervisor`",`"$employeeClass`""
                                     $newLine | Add-Content -path $newFileName
                                 }
                                 else
